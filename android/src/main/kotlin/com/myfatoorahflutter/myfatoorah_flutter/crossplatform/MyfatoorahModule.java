@@ -123,6 +123,12 @@ public class MyfatoorahModule implements MfSDKHelper.MFSDKHelper {
                     return Unit.INSTANCE;
                 },
                 (String invoiceId, MFResult<MFGetPaymentStatusResponse> result) -> {
+                    if (invoiceId != null) {
+                        // Re-send right before the result so the id cannot be
+                        // clobbered by interleaved card-height events and it
+                        // also flows when the charge failed.
+                        OnInvoiceCreated(invoiceId);
+                    }
                     if (result instanceof MFResult.Success) {
                         MFGetPaymentStatusResponse response = ((MFResult.Success<MFGetPaymentStatusResponse>) result).getResponse();
                         OnSuccess(promise, response);
@@ -167,6 +173,12 @@ public class MyfatoorahModule implements MfSDKHelper.MFSDKHelper {
                     return Unit.INSTANCE;
                 },
                 (String invoiceId, MFResult<MFGetPaymentStatusResponse> result) -> {
+                    if (invoiceId != null) {
+                        // Re-send right before the result so the id cannot be
+                        // clobbered by interleaved card-height events and it
+                        // also flows when the charge failed.
+                        OnInvoiceCreated(invoiceId);
+                    }
                     if (result instanceof MFResult.Success) {
                         MFGetPaymentStatusResponse response = ((MFResult.Success<MFGetPaymentStatusResponse>) result).getResponse();
                         OnSuccess(promise, response);
@@ -208,6 +220,9 @@ public class MyfatoorahModule implements MfSDKHelper.MFSDKHelper {
                     return Unit.INSTANCE;
                 },
                 (String invoiceId, MFResult<MFDirectPaymentResponse> result) -> {
+                    if (invoiceId != null) {
+                        OnInvoiceCreated(invoiceId);
+                    }
                     if (result instanceof MFResult.Success) {
                         MFDirectPaymentResponse response = ((MFResult.Success<MFDirectPaymentResponse>) result).getResponse();
                         OnSuccess(promise, response);
@@ -353,6 +368,12 @@ public class MyfatoorahModule implements MfSDKHelper.MFSDKHelper {
                     return Unit.INSTANCE;
                 },
                 (String invoiceId, MFResult<MFGetPaymentStatusResponse> result) -> {
+                    if (invoiceId != null) {
+                        // Re-send right before the result so the id cannot be
+                        // clobbered by interleaved card-height events and it
+                        // also flows when the charge failed.
+                        OnInvoiceCreated(invoiceId);
+                    }
                     if (result instanceof MFResult.Success) {
                         MFGetPaymentStatusResponse response = ((MFResult.Success<MFGetPaymentStatusResponse>) result).getResponse();
                         OnSuccess(promise, response);
@@ -398,6 +419,12 @@ public class MyfatoorahModule implements MfSDKHelper.MFSDKHelper {
                     return Unit.INSTANCE;
                 },
                 (String invoiceId, MFResult<MFGetPaymentStatusResponse> result) -> {
+                    if (invoiceId != null) {
+                        // Re-send right before the result so the id cannot be
+                        // clobbered by interleaved card-height events and it
+                        // also flows when the charge failed.
+                        OnInvoiceCreated(invoiceId);
+                    }
                     if (result instanceof MFResult.Success) {
                         MFGetPaymentStatusResponse response = ((MFResult.Success<MFGetPaymentStatusResponse>) result).getResponse();
                         OnSuccess(promise, response);
@@ -417,6 +444,7 @@ public class MyfatoorahModule implements MfSDKHelper.MFSDKHelper {
     public IMFListener mfListener;
 
     private void OnInvoiceCreated(String invoiceId) {
+        if (mfListener == null) return;
         mfListener.OnInvoiceCreated(invoiceId);
     }
 

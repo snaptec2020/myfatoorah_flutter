@@ -90,6 +90,9 @@ public class MyfatoorahFlutterPlugin: NSObject, FlutterPlugin, MFSDKHelper {
         let language = MFAPILanguage(rawValue: lang) ?? .english
         
         MFPaymentRequest.shared.executePayment(request: executePaymentRequest, apiLanguage: language) { (response, invoiceId) in
+            // Forward the invoiceId to Flutter even when the charge fails —
+            // the delegate's didInvoiceCreated does not fire on every flow.
+            MFStreamHandler.sendStream(data: invoiceId)
             switch response {
             case .success(let executePaymentResponse):
                 completion(.success(executePaymentResponse))
@@ -118,6 +121,7 @@ public class MyfatoorahFlutterPlugin: NSObject, FlutterPlugin, MFSDKHelper {
             return
         }
         MFPaymentRequest.shared.executeDirectPayment(request: executePayReq, cardInfo: card, apiLanguage: .english) { (response, invoiceId) in
+            MFStreamHandler.sendStream(data: invoiceId)
             switch response {
             case .success(let directPaymentResponse):
                 completion(.success(directPaymentResponse))
@@ -148,6 +152,7 @@ public class MyfatoorahFlutterPlugin: NSObject, FlutterPlugin, MFSDKHelper {
             updateSessionRequest: updateSessionRequest,
             paymentRequest: executePayReq,
             apiLanguage: language) { (response, invoiceId) in
+                MFStreamHandler.sendStream(data: invoiceId)
                 switch response {
                 case .success(let executePaymentResponse):
                     completion(.success(executePaymentResponse))
@@ -244,6 +249,10 @@ public class MyfatoorahFlutterPlugin: NSObject, FlutterPlugin, MFSDKHelper {
         let currency = MFCurrencyISO(rawValue: currency ?? "")
 
         CardView.cardView.pay(executePaymentRequest, language, currency) { response, invoiceId in
+            // The embedded card view never triggers the didInvoiceCreated
+            // delegate — this is the only channel carrying the invoiceId to
+            // Flutter, and it must also flow on a failed charge.
+            MFStreamHandler.sendStream(data: invoiceId)
             switch response {
             case .success(let paymentStatus):
                 completion(.success(paymentStatus))
@@ -274,6 +283,7 @@ public class MyfatoorahFlutterPlugin: NSObject, FlutterPlugin, MFSDKHelper {
             switch response {
             case .success(let session):
                 ApplePayButton.applePayButton.load(session, executePaymentRequest, language) { response, invoiceId in
+                    MFStreamHandler.sendStream(data: invoiceId)
                     switch response {
                     case .success(let executePaymentResponse):
                         completion(.success(executePaymentResponse))
@@ -295,13 +305,14 @@ public class MyfatoorahFlutterPlugin: NSObject, FlutterPlugin, MFSDKHelper {
         ApplePayButton.applePayButton.load(session, executePaymentRequest, language) {
             MFStreamHandler.sendStream(data: "Appl Pay Start Session")
         } completion: { response, invoiceId in
+            MFStreamHandler.sendStream(data: invoiceId)
             switch response {
             case .success(let executePaymentResponse):
                 completion(.success(executePaymentResponse))
             case .failure(let error):
                 completion(.failure(error))
             }
-            
+
         }
     }
     
@@ -324,6 +335,7 @@ public class MyfatoorahFlutterPlugin: NSObject, FlutterPlugin, MFSDKHelper {
     func executeApplePayButton(executePaymentRequest: MFExecutePaymentRequest?,
                                completion: @escaping (Result<MFPaymentStatusResponse, Error>) -> Void) {
         ApplePayButton.applePayButton.executePayment(request: executePaymentRequest) { response, invoiceId in
+            MFStreamHandler.sendStream(data: invoiceId)
             switch response {
             case .success(let executePaymentResponse):
                 completion(.success(executePaymentResponse))
@@ -372,6 +384,7 @@ public class MyfatoorahFlutterPlugin: NSObject, FlutterPlugin, MFSDKHelper {
     func executeApplePayPayment(executePaymentRequest: MFExecutePaymentRequest?,
                         completion: @escaping (Result<MFPaymentStatusResponse, Error>) -> Void) {
         MyfatoorahFlutterPlugin.applePay.executePayment(request: executePaymentRequest) { response, invoiceId in
+            MFStreamHandler.sendStream(data: invoiceId)
             switch response {
             case .success(let executePaymentResponse):
                 completion(.success(executePaymentResponse))
